@@ -184,6 +184,56 @@ A comprehensive Privileged Access Management system built with HashiCorp Vault a
                                └─────────────┘
 ```
 
+## Authentication Flow
+
+### Network Device Authentication
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Vault
+    participant NetworkDevice
+    
+    User->>Vault: Login with userpass
+    Vault-->>User: Return Vault token
+    
+    User->>Vault: Request device credentials
+    Note over User,Vault: ./connect-device.sh cisco switch1
+    Vault-->>User: Return device credentials
+    
+    User->>NetworkDevice: SSH connection
+    Note over User,NetworkDevice: Using retrieved credentials
+    NetworkDevice-->>User: Authentication successful
+```
+
+### SSH Authentication with PAM
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Vault
+    participant SSHD
+    participant PAM
+    participant VaultSSHHelper
+    
+    User->>Vault: Login with userpass
+    Vault-->>User: Return Vault token
+    
+    User->>Vault: Request SSH key
+    Note over User,Vault: vault-ssh-keygen
+    Vault-->>User: Return SSH key
+    
+    User->>SSHD: SSH connection request
+    Note over User,SSHD: vault-ssh-connect server1
+    SSHD->>PAM: Authentication request
+    PAM->>VaultSSHHelper: Validate credentials
+    VaultSSHHelper->>Vault: Verify token & permissions
+    Vault-->>VaultSSHHelper: Validation result
+    VaultSSHHelper-->>PAM: Authentication result
+    PAM-->>SSHD: Authentication result
+    SSHD-->>User: Connection established
+```
+
 ## Components
 
 ### Vault Configuration
