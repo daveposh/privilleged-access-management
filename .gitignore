@@ -1,0 +1,37 @@
+# Vault data
+vault-data/
+vault-keys.txt
+
+# etcd data
+etcd1_data/
+etcd2_data/
+etcd3_data/
+
+# Environment files
+.env
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Compiled files
+*.o
+*.so
+*.pyc
+__pycache__/ 
