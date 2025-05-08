@@ -1,25 +1,52 @@
-# Vault-based Privileged Access Management (PAM)
+# Privileged Access Management (PAM) System
 
-A secure Privileged Access Management system built using HashiCorp Vault with etcd as the backend storage. This system provides secure SSH authentication and secrets management for Linux systems.
+A comprehensive Privileged Access Management system built with HashiCorp Vault and etcd, designed to securely manage access to network devices and systems.
 
 ## Features
 
-- HashiCorp Vault for secrets management
-- 3-node etcd cluster for high availability storage
-- Docker-based deployment
-- SSH authentication integration
-- PAM integration for Linux systems
-- Automated setup scripts
-- Convenient shell aliases
+- **HashiCorp Vault Integration**
+  - Secure secrets management
+  - Dynamic credential generation
+  - Access control policies
+  - Audit logging
+
+- **High Availability Storage**
+  - 3-node etcd cluster
+  - Consensus-based replication
+  - Automatic failover
+  - Data persistence
+
+- **Docker-based Deployment**
+  - Containerized services
+  - Easy deployment
+  - Consistent environments
+  - Scalable architecture
+
+- **Network Device Management**
+  - Support for Cisco devices
+  - Support for Palo Alto Networks devices
+  - Secure credential storage
+  - Automated device connections
+  - Role-based access control
+
+- **SSH Authentication**
+  - Secure SSH key management
+  - Dynamic credential generation
+  - Access control policies
+  - Audit logging
+
+- **Automated Setup**
+  - One-command initialization
+  - Automated unsealing
+  - Configuration management
+  - Health checks
 
 ## Prerequisites
 
-- Docker
-- Docker Compose
-- Debian-based Linux system (for SSH/PAM integration)
-- Git
-- Make
-- Go (for compiling vault-ssh-helper)
+- Docker and Docker Compose
+- OpenSSL (for certificate generation)
+- `sshpass` and `jq` (for network device management)
+- Network access to target devices
 
 ## Quick Start
 
@@ -34,50 +61,59 @@ A secure Privileged Access Management system built using HashiCorp Vault with et
    ./init-vault.sh
    ```
 
-3. Source the aliases (add to your shell config for persistence):
+3. Source the aliases:
    ```bash
    source vault-aliases.sh
    ```
 
-4. Set up SSH authentication (on target Debian system):
+4. Set up SSH authentication:
    ```bash
    ./setup-ssh-auth.sh
+   ```
+
+5. Set up network device management:
+   ```bash
+   ./network-device-setup.sh
    ```
 
 ## Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │
-│  HashiCorp Vault│◄────┤  etcd Cluster  │
-│                 │     │  (3 nodes)      │
-└────────┬────────┘     └─────────────────┘
-         │
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │
-│  SSH/PAM        │◄────┤  Linux Systems  │
-│  Integration    │     │                 │
-└─────────────────┘     └─────────────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Vault 1   │     │   Vault 2   │     │   Vault 3   │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       └───────────┬───────┴───────────┬───────┘
+                   │                   │
+            ┌──────┴──────┐    ┌──────┴──────┐
+            │   etcd 1    │    │   etcd 2    │
+            └──────┬──────┘    └──────┬──────┘
+                   │                   │
+            ┌──────┴──────┐    ┌──────┴──────┐
+            │   etcd 3    │    │  Network    │
+            └─────────────┘    │  Devices    │
+                               └─────────────┘
 ```
 
 ## Components
 
-### Vault Server
-- Manages secrets and authentication
-- Provides SSH OTP generation
-- Handles access policies
+### Vault Configuration
+- High availability setup
+- TLS encryption
+- Audit logging
+- Access policies
 
 ### etcd Cluster
-- 3-node consensus cluster
-- High availability storage
-- Persistent data storage
+- 3-node consensus
+- Data persistence
+- Automatic failover
+- Health monitoring
 
-### SSH/PAM Integration
-- Vault SSH helper
-- PAM configuration
-- One-time password authentication
+### Network Device Management
+- Support for multiple device types
+- Secure credential storage
+- Automated connections
+- Access control policies
 
 ## Usage
 
@@ -88,102 +124,127 @@ A secure Privileged Access Management system built using HashiCorp Vault with et
    vault-status
    ```
 
-2. Store a secret:
+2. Unseal Vault:
    ```bash
-   vault-kv-put kv/my-secret username=admin password=secret123
+   vault-unseal
    ```
 
-3. Retrieve a secret:
+3. Login to Vault:
    ```bash
-   vault-kv-get kv/my-secret
+   vault-login
+   ```
+
+### Network Device Management
+
+1. Add a new device:
+   ```bash
+   # Add a Cisco device
+   ./manage-devices.sh add cisco switch1 admin password123
+
+   # Add a Palo Alto device
+   ./manage-devices.sh add paloalto fw1 admin password123
+   ```
+
+2. List devices:
+   ```bash
+   # List Cisco devices
+   ./manage-devices.sh list cisco
+
+   # List Palo Alto devices
+   ./manage-devices.sh list paloalto
+   ```
+
+3. Connect to devices:
+   ```bash
+   # Connect to a Cisco device
+   ./connect-device.sh cisco switch1
+
+   # Connect to a Palo Alto device
+   ./connect-device.sh paloalto fw1
+   ```
+
+4. Update device credentials:
+   ```bash
+   ./manage-devices.sh update <device-type> <device-name> <username> <password>
+   ```
+
+5. Delete a device:
+   ```bash
+   ./manage-devices.sh delete <device-type> <device-name>
    ```
 
 ### SSH Authentication
 
-1. Enable SSH secrets engine:
+1. Generate SSH key:
    ```bash
-   vault secrets enable ssh
+   vault-ssh-keygen
    ```
 
-2. Create SSH role:
+2. Add SSH key to Vault:
    ```bash
-   vault write ssh/roles/otp_key_role \
-       key_type=otp \
-       default_user=ubuntu \
-       cidr_list=0.0.0.0/0
+   vault-ssh-add
    ```
 
-3. Generate OTP:
+3. Connect to a system:
    ```bash
-   vault write ssh/creds/otp_key_role ip=<target-ip>
+   vault-ssh-connect <system-name>
    ```
 
 ## Security Considerations
 
 1. **Production Deployment**
    - Enable TLS for all communications
-   - Use proper seal configuration
-   - Implement proper authentication methods
+   - Use proper authentication methods
    - Set up audit logging
    - Configure proper access policies
-
-2. **Key Management**
-   - Securely store unseal keys
+   - Restrict network access
    - Regularly rotate credentials
-   - Implement key backup procedures
 
-3. **Network Security**
-   - Restrict access to Vault API
-   - Use proper firewall rules
-   - Implement network segmentation
+2. **Network Device Security**
+   - Change default passwords
+   - Use strong authentication
+   - Implement access controls
+   - Monitor device access
+   - Regular credential rotation
+
+3. **Best Practices**
+   - Regular backups
+   - Monitoring and alerting
+   - Access review
+   - Security audits
+   - Compliance checks
 
 ## Maintenance
 
-### Backup and Restore
+1. **Regular Tasks**
+   - Monitor system health
+   - Review audit logs
+   - Rotate credentials
+   - Update configurations
+   - Backup data
 
-1. Backup etcd data:
-   ```bash
-   etcd-backup
-   ```
-
-2. Restore etcd data:
-   ```bash
-   etcd-restore
-   ```
-
-### Monitoring
-
-1. Check Vault status:
-   ```bash
-   vault-status
-   ```
-
-2. Check etcd cluster health:
-   ```bash
-   etcd-health
-   ```
-
-3. View logs:
-   ```bash
-   vault-logs
-   ```
+2. **Troubleshooting**
+   - Check service status
+   - Review logs
+   - Verify connectivity
+   - Test authentication
+   - Validate policies
 
 ## Troubleshooting
 
-1. **Vault Issues**
-   - Check Vault status: `vault-status`
-   - View logs: `vault-logs`
-   - Verify etcd connection: `etcd-health`
+1. **Common Issues**
+   - Vault unsealing problems
+   - Authentication failures
+   - Connection issues
+   - Policy conflicts
+   - Storage errors
 
-2. **SSH Authentication Issues**
-   - Check PAM configuration
-   - Verify Vault SSH helper
-   - Check SSH logs
-
-3. **Common Problems**
-   - Vault unsealing issues
-   - etcd cluster health
-   - SSH connection problems
+2. **Solutions**
+   - Check service status
+   - Verify configurations
+   - Review logs
+   - Test connectivity
+   - Validate policies
 
 ## Contributing
 
@@ -202,4 +263,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - HashiCorp Vault
 - etcd
 - Docker
-- Linux PAM 
+- OpenSSH 
