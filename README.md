@@ -76,6 +76,95 @@ A comprehensive Privileged Access Management system built with HashiCorp Vault a
    ./network-device-setup.sh
    ```
 
+## Login Process
+
+### Vault Login
+
+1. **Initial Login**
+   After initialization, you'll need to log in to Vault:
+   ```bash
+   # Login with the root token (first time only)
+   vault login <root-token>
+   
+   # Or use the alias
+   vault-login
+   ```
+
+2. **User Login**
+   For regular users:
+   ```bash
+   # Login as a network admin
+   vault login -method=userpass username=network-admin
+   # Enter password when prompted
+   
+   # Login as a device admin
+   vault login -method=userpass username=device-admin
+   # Enter password when prompted
+   ```
+
+### Network Device Access
+
+1. **Cisco Device Login**
+   ```bash
+   # Connect to a Cisco device
+   ./connect-device.sh cisco switch1
+   # The script will automatically:
+   # 1. Retrieve credentials from Vault
+   # 2. Establish SSH connection
+   # 3. Log you in to the device
+   ```
+
+2. **Palo Alto Device Login**
+   ```bash
+   # Connect to a Palo Alto device
+   ./connect-device.sh paloalto fw1
+   # The script will automatically:
+   # 1. Retrieve credentials from Vault
+   # 2. Establish SSH connection
+   # 3. Log you in to the device
+   ```
+
+### SSH Authentication
+
+1. **Generate and Store SSH Key**
+   ```bash
+   # Generate a new SSH key
+   vault-ssh-keygen
+   
+   # Add the key to Vault
+   vault-ssh-add
+   ```
+
+2. **Connect to Systems**
+   ```bash
+   # Connect to a Linux system
+   vault-ssh-connect server1
+   # The script will:
+   # 1. Retrieve your SSH key from Vault
+   # 2. Establish SSH connection
+   # 3. Log you in to the system
+   ```
+
+### Session Management
+
+1. **Check Current Session**
+   ```bash
+   # View current Vault token and policies
+   vault token lookup
+   
+   # List active sessions
+   vault list auth/token/accessors
+   ```
+
+2. **Logout**
+   ```bash
+   # Logout from Vault
+   vault logout
+   
+   # Or use the alias
+   vault-logout
+   ```
+
 ## Architecture
 
 ```
